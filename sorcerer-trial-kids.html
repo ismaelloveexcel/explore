@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorcerer Trial: Kids Edition</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Bangers&display=swap');
+
+    :root {
+      --bg: #0f0a2e;
+      --panel: #1a1145;
+      --card: rgba(255,255,255,0.06);
+      --text: #f0eaff;
+      --muted: #a89cc8;
+      --accent: #a855f7;
+      --cyan: #22d3ee;
+      --green: #34d399;
+      --red: #f87171;
+      --gold: #fbbf24;
+      --orange: #fb923c;
+      --pink: #f472b6;
+      --blue: #60a5fa;
+      --radius: 20px;
+      --glow-purple: 0 0 30px rgba(168,85,247,0.4);
+      --glow-cyan: 0 0 30px rgba(34,211,238,0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Fredoka', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.8s ease;
+    }
+
+    .wrap { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ======= PARTICLES CANVAS ======= */
+    #particles-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ======= START SCREEN ======= */
+    .start-hero {
+      text-align: center;
+      padding: 60px 20px 40px;
+      position: relative;
+      z-index: 1;
+    }
+    .start-hero .logo {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(48px, 8vw, 80px);
+      background: linear-gradient(135deg, var(--accent), var(--cyan), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 4px 12px rgba(168,85,247,0.5));
+      line-height: 1.1;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .start-hero .edition {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(20px, 3vw, 32px);
+      color: var(--gold);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .start-hero .tagline {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .start-characters {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .start-char-preview {
+      width: 80px; height: 100px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, border-color 0.3s;
+      position: relative;
+    }
+    .start-char-preview:hover {
+      transform: translateY(-4px) scale(1.05);
+      border-color: var(--accent);
+    }
+
+    .btn {
+      appearance: none; border: none;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 16px;
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      color: white;
+      padding: 18px 40px;
+      font-size: 20px;
+      box-shadow: 0 8px 30px rgba(168,85,247,0.4);
+    }
+    .btn-primary:hover { box-shadow: 0 12px 40px rgba(168,85,247,0.6); }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      color: var(--text);
+      padding: 14px 28px;
+      font-size: 16px;
+    }
+
+    .btn-ability {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      padding: 12px 16px;
+      font-size: 14px;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    }
+
+    .btn-answer {
+      width: 100%;
+      text-align: left;
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+      font-size: 16px;
+      font-weight: 600;
+      font-family: 'Fredoka', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-answer:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+      transform: translateX(4px);
+    }
+    .btn-answer.correct {
+      background: rgba(52,211,153,0.2);
+      border-color: var(--green);
+      animation: correctPop 0.4s ease;
+    }
+    .btn-answer.wrong {
+      background: rgba(248,113,113,0.15);
+      border-color: var(--red);
+      animation: wrongShake 0.4s ease;
+    }
+    @keyframes correctPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    @keyframes wrongShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* ======= CHARACTER SELECT ======= */
+    .select-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .char-card {
+      background: var(--card);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.25s;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .char-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .char-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-4px);
+    }
+    .char-card:hover::before { opacity: 1; }
+    .char-card.selected {
+      border-color: var(--accent);
+      background: rgba(168,85,247,0.12);
+      box-shadow: var(--glow-purple);
+    }
+    .char-card.selected::before { opacity: 1; }
+    .char-card.locked {
+      opacity: 0.5;
+      filter: grayscale(0.7);
+      cursor: not-allowed;
+    }
+    .char-card.locked:hover { transform: none; }
+
+    .char-portrait {
+      width: 120px; height: 140px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .char-name {
+      font-family: 'Bangers', cursive;
+      font-size: 22px;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .char-desc {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .char-stats {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .token-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #1a1145;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    /* ======= BATTLE SCREEN ======= */
+    .battle-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 480px) {
+      .status-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+    .stat-box {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-box .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-box .value { font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 1px; }
+
+    .arena-section {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .arena-section::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(168,85,247,0.08), transparent 70%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .fighters-row {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 600px) {
+      .fighters-row { grid-template-columns: 1fr 40px 1fr; gap: 8px; }
+    }
+
+    .fighter-card {
+      background: rgba(255,255,255,0.03);
+      border: 2px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+    .fighter-card.player-side { border-color: rgba(96,165,250,0.3); }
+    .fighter-card.enemy-side { border-color: rgba(248,113,113,0.3); }
+
+    .fighter-portrait {
+      width: 80px; height: 90px;
+      margin: 0 auto 8px;
+      position: relative;
+    }
+    .fighter-name {
+      font-family: 'Bangers', cursive;
+      font-size: 20px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .fighter-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .hp-bar-wrap {
+      width: 100%;
+      height: 14px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .hp-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+    .hp-fill.player-hp {
+      background: linear-gradient(90deg, var(--blue), var(--accent));
+    }
+    .hp-fill.enemy-hp {
+      background: linear-gradient(90deg, var(--red), var(--orange));
+    }
+    .hp-text {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .ce-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .ce-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #7c3aed, #a855f7);
+      border-radius: 99px;
+      transition: width 0.3s;
+    }
+    .ce-text {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .vs-badge {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      font-family: 'Bangers', cursive;
+      font-size: 18px;
+      box-shadow: var(--glow-purple);
+      justify-self: center;
+      border: 2px solid rgba(255,255,255,0.15);
+    }
+
+    .ability-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .question-section {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .timer-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--gold), var(--red));
+      border-radius: 3px;
+      transition: width 0.1s linear;
+    }
+
+    .q-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .q-text {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+    .answers-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .next-btn-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .battle-log-section {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .battle-log-section h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 20px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .log-scroll {
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .log-scroll::-webkit-scrollbar { width: 4px; }
+    .log-scroll::-webkit-scrollbar-track { background: transparent; }
+    .log-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .log-entry {
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      border: 1px solid rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.02);
+    }
+    .log-entry.good { border-color: rgba(52,211,153,0.25); background: rgba(52,211,153,0.08); }
+    .log-entry.bad { border-color: rgba(248,113,113,0.2); background: rgba(248,113,113,0.08); }
+    .log-entry.special { border-color: rgba(168,85,247,0.3); background: rgba(168,85,247,0.1); }
+    .log-entry.boss { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.08); }
+
+    /* ======= ATTACK ANIMATIONS ======= */
+    .attack-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 100;
+      display: none;
+    }
+    .attack-overlay.active { display: block; }
+
+    .attack-text {
+      position: absolute;
+      font-family: 'Bangers', cursive;
+      font-size: 48px;
+      color: white;
+      text-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent);
+      animation: attackTextAnim 1s ease-out forwards;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      white-space: nowrap;
+    }
+    @keyframes attackTextAnim {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      30% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+      60% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+    }
+
+    .hit-flash {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 99;
+    }
+
+    .slash-effect {
+      position: absolute;
+      width: 200px; height: 4px;
+      background: linear-gradient(90deg, transparent, white, transparent);
+      animation: slashAnim 0.3s ease-out forwards;
+    }
+    @keyframes slashAnim {
+      0% { transform: scaleX(0) rotate(-30deg); opacity: 1; }
+      100% { transform: scaleX(2) rotate(-30deg); opacity: 0; }
+    }
+
+    .impact-ring {
+      position: absolute;
+      width: 10px; height: 10px;
+      border: 3px solid white;
+      border-radius: 50%;
+      animation: impactAnim 0.5s ease-out forwards;
+    }
+    @keyframes impactAnim {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(12); opacity: 0; }
+    }
+
+    /* Fighter hit/attack animations */
+    .fighter-card.hit-anim {
+      animation: fighterHit 0.3s ease;
+    }
+    @keyframes fighterHit {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+      100% { transform: translateX(0); }
+    }
+
+    .fighter-card.attack-anim {
+      animation: fighterAttack 0.4s ease;
+    }
+    @keyframes fighterAttack {
+      0% { transform: translateX(0); }
+      40% { transform: translateX(20px) scale(1.05); }
+      100% { transform: translateX(0) scale(1); }
+    }
+
+    .fighter-card.enemy-side.attack-anim {
+      animation: enemyAttackAnim 0.4s ease;
+    }
+    @keyframes enemyAttackAnim {
+      0% { transform: translateX(0); }
+      40% { transform: translateX(-20px) scale(1.05); }
+      100% { transform: translateX(0) scale(1); }
+    }
+
+    /* Black Flash effect */
+    .black-flash-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 101;
+      display: none;
+    }
+    .black-flash-overlay.active {
+      display: block;
+      animation: blackFlashFX 0.5s ease-out forwards;
+    }
+    @keyframes blackFlashFX {
+      0% { background: rgba(0,0,0,0); }
+      15% { background: rgba(255,255,255,0.9); }
+      30% { background: rgba(0,0,0,0.8); }
+      50% { background: rgba(168,85,247,0.3); }
+      100% { background: rgba(0,0,0,0); }
+    }
+
+    /* ======= DOMAIN EXPANSION OVERLAY ======= */
+    .domain-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 200;
+      display: none;
+      pointer-events: all;
+    }
+    .domain-overlay.active { display: flex; align-items: center; justify-content: center; }
+
+    .domain-bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: #000;
+      animation: domainBgAnim 4s ease forwards;
+    }
+    @keyframes domainBgAnim {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .domain-pattern {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      overflow: hidden;
+    }
+    .domain-circle {
+      position: absolute;
+      border: 2px solid;
+      border-radius: 50%;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) scale(0);
+    }
+
+    .domain-text-container {
+      position: relative; z-index: 5;
+      text-align: center;
+    }
+    .domain-announce {
+      font-family: 'Bangers', cursive;
+      font-size: 18px;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
+      animation: domainTextFade 4s ease forwards;
+    }
+    @keyframes domainTextFade {
+      0% { opacity: 0; transform: translateY(20px); }
+      20% { opacity: 1; transform: translateY(0); }
+      75% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .domain-name {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(36px, 8vw, 72px);
+      color: white;
+      text-shadow: 0 0 40px var(--accent), 0 0 80px var(--accent);
+      opacity: 0;
+      animation: domainNameAnim 4s ease forwards;
+      letter-spacing: 4px;
+    }
+    @keyframes domainNameAnim {
+      0% { opacity: 0; transform: scale(0.5); }
+      25% { opacity: 1; transform: scale(1.1); }
+      35% { transform: scale(1); }
+      75% { opacity: 1; }
+      100% { opacity: 0; transform: scale(0.9); }
+    }
+    .domain-damage {
+      font-family: 'Bangers', cursive;
+      font-size: 28px;
+      color: var(--red);
+      opacity: 0;
+      animation: domainDmgAnim 4s ease forwards;
+    }
+    @keyframes domainDmgAnim {
+      0%,40% { opacity: 0; transform: translateY(10px); }
+      55% { opacity: 1; transform: translateY(0); }
+      75% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Sukuna Domain */
+    .domain-overlay.sukuna .domain-bg {
+      background: radial-gradient(circle, #1a0505, #000);
+    }
+
+    /* ======= BOSS INTRO ======= */
+    .boss-intro-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 150;
+      display: none;
+      background: #000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+    }
+    .boss-intro-overlay.active {
+      display: flex;
+      animation: bossIntroAnim 3.5s ease forwards;
+    }
+    @keyframes bossIntroAnim {
+      0% { opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .boss-warning {
+      font-family: 'Bangers', cursive;
+      font-size: 24px;
+      color: var(--red);
+      letter-spacing: 12px;
+      text-transform: uppercase;
+      animation: warningFlash 0.5s ease infinite alternate;
+      margin-bottom: 20px;
+    }
+    @keyframes warningFlash {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+    .boss-name-reveal {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(40px, 10vw, 90px);
+      color: white;
+      text-shadow: 0 0 30px var(--red), 0 0 60px rgba(248,113,113,0.5);
+      opacity: 0;
+      animation: bossNameReveal 3.5s ease forwards;
+      letter-spacing: 6px;
+    }
+    @keyframes bossNameReveal {
+      0%,20% { opacity: 0; transform: scale(0.3); }
+      50% { opacity: 1; transform: scale(1.15); }
+      60% { transform: scale(1); }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .boss-subtitle {
+      font-size: 18px;
+      color: var(--gold);
+      opacity: 0;
+      animation: bossSubReveal 3.5s ease forwards;
+    }
+    @keyframes bossSubReveal {
+      0%,35% { opacity: 0; }
+      55% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ======= COMBO EFFECTS ======= */
+    .combo-glow { animation: comboGlow 1s ease infinite alternate; }
+    @keyframes comboGlow {
+      from { text-shadow: 0 0 8px var(--gold); color: var(--gold); }
+      to { text-shadow: 0 0 20px var(--red); color: var(--red); }
+    }
+
+    /* ======= END SCREEN ======= */
+    .end-hero {
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .end-rank {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(40px, 7vw, 64px);
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .end-line {
+      font-size: 18px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    /* ======= TUTORIAL MODAL ======= */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 32px;
+      letter-spacing: 2px;
+      margin-bottom: 16px;
+    }
+    .modal-card p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    .modal-card .tip-icon { font-size: 20px; margin-right: 6px; }
+    .modal-card .btn { width: 100%; margin-top: 12px; }
+
+    /* ======= SHOP ======= */
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      margin-bottom: 10px;
+    }
+
+    /* ======= CHARACTER PORTRAITS (CSS Art) ======= */
+    .portrait {
+      width: 100%; height: 100%;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .portrait .bg {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+    .portrait .body-shape {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+    }
+    .portrait .head {
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      border-radius: 50%;
+    }
+    .portrait .hair {
+      position: absolute;
+    }
+    .portrait .eyes {
+      position: absolute;
+      display: flex;
+      gap: 8px;
+    }
+    .portrait .eye {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: white;
+    }
+    .portrait .detail {
+      position: absolute;
+    }
+
+    /* Yuji Portrait */
+    .portrait-yuji .bg { background: linear-gradient(180deg, #ff6b6b22, #ff6b6b08); }
+    .portrait-yuji .head {
+      width: 44px; height: 44px; top: 22px;
+      background: #f5c6a0;
+    }
+    .portrait-yuji .hair {
+      top: 10px; left: 50%; transform: translateX(-50%);
+      width: 52px; height: 30px;
+      background: #ff6b8a;
+      border-radius: 50% 50% 0 0;
+    }
+    .portrait-yuji .eyes { top: 38px; left: 50%; transform: translateX(-50%); }
+    .portrait-yuji .body-shape {
+      width: 60px; height: 50px;
+      background: linear-gradient(180deg, #1a1a2e, #2d2d5e);
+      border-radius: 12px 12px 0 0;
+    }
+    .portrait-yuji .detail {
+      bottom: 30px; left: 50%; transform: translateX(-50%);
+      width: 20px; height: 20px;
+      background: linear-gradient(135deg, #ff6b6b, #cc4444);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255,107,107,0.5);
+    }
+
+    /* Megumi Portrait */
+    .portrait-megumi .bg { background: linear-gradient(180deg, #4a5eff22, #4a5eff08); }
+    .portrait-megumi .head {
+      width: 44px; height: 44px; top: 22px;
+      background: #f0d4b8;
+    }
+    .portrait-megumi .hair {
+      top: 8px; left: 50%; transform: translateX(-50%);
+      width: 56px; height: 35px;
+      background: #1a1a3a;
+      border-radius: 40% 40% 20% 20%;
+    }
+    .portrait-megumi .hair::after {
+      content: '';
+      position: absolute;
+      top: -8px; left: 8px;
+      width: 16px; height: 16px;
+      background: #1a1a3a;
+      border-radius: 50% 50% 0 0;
+      transform: rotate(-15deg);
+    }
+    .portrait-megumi .eyes { top: 38px; left: 50%; transform: translateX(-50%); }
+    .portrait-megumi .eye { background: #6ee7b7; }
+    .portrait-megumi .body-shape {
+      width: 60px; height: 50px;
+      background: linear-gradient(180deg, #1a1a2e, #0f0f2a);
+      border-radius: 12px 12px 0 0;
+    }
+    .portrait-megumi .detail {
+      bottom: 24px; left: 50%; transform: translateX(-50%);
+      width: 30px; height: 14px;
+      border-bottom: 3px solid #4a5eff;
+      border-radius: 0 0 50% 50%;
+      box-shadow: 0 4px 12px rgba(74,94,255,0.4);
+    }
+
+    /* Nobara Portrait */
+    .portrait-nobara .bg { background: linear-gradient(180deg, #f59e0b22, #f59e0b08); }
+    .portrait-nobara .head {
+      width: 42px; height: 42px; top: 24px;
+      background: #f5c6a0;
+    }
+    .portrait-nobara .hair {
+      top: 12px; left: 50%; transform: translateX(-50%);
+      width: 54px; height: 32px;
+      background: #c2762e;
+      border-radius: 50% 50% 30% 30%;
+    }
+    .portrait-nobara .eyes { top: 40px; left: 50%; transform: translateX(-50%); }
+    .portrait-nobara .eye { background: #f59e0b; }
+    .portrait-nobara .body-shape {
+      width: 56px; height: 48px;
+      background: linear-gradient(180deg, #2d1a00, #1a0f00);
+      border-radius: 12px 12px 0 0;
+    }
+    .portrait-nobara .detail {
+      bottom: 34px; left: 50%; transform: translateX(-50%);
+      width: 8px; height: 22px;
+      background: linear-gradient(180deg, #888, #aaa);
+      border-radius: 2px;
+      transform: translateX(-50%) rotate(-20deg);
+    }
+    .portrait-nobara .detail::after {
+      content: '';
+      position: absolute;
+      top: -4px; left: 0; right: 0;
+      width: 14px; height: 10px;
+      background: #666;
+      border-radius: 4px 4px 0 0;
+      margin-left: -3px;
+    }
+
+    /* Gojo Portrait */
+    .portrait-gojo .bg { background: linear-gradient(180deg, #22d3ee22, #a855f722); }
+    .portrait-gojo .head {
+      width: 44px; height: 44px; top: 22px;
+      background: #f5d4c0;
+    }
+    .portrait-gojo .hair {
+      top: 8px; left: 50%; transform: translateX(-50%);
+      width: 56px; height: 32px;
+      background: #e8e8f8;
+      border-radius: 50% 50% 20% 20%;
+    }
+    .portrait-gojo .eyes {
+      top: 36px; left: 50%; transform: translateX(-50%);
+      width: 36px; height: 8px;
+      gap: 0;
+    }
+    .portrait-gojo .blindfold {
+      position: absolute;
+      top: 34px; left: 50%; transform: translateX(-50%);
+      width: 48px; height: 10px;
+      background: #111;
+      border-radius: 5px;
+    }
+    .portrait-gojo .body-shape {
+      width: 60px; height: 50px;
+      background: linear-gradient(180deg, #1a1a3e, #12122e);
+      border-radius: 12px 12px 0 0;
+    }
+    .portrait-gojo .detail {
+      bottom: 28px; left: 50%; transform: translateX(-50%);
+      width: 24px; height: 24px;
+      border: 3px solid var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgba(34,211,238,0.6), inset 0 0 8px rgba(34,211,238,0.3);
+    }
+
+    /* Sukuna Portrait */
+    .portrait-sukuna .bg { background: linear-gradient(180deg, #ef444422, #f59e0b11); }
+    .portrait-sukuna .head {
+      width: 46px; height: 46px; top: 20px;
+      background: #e8c8a0;
+    }
+    .portrait-sukuna .hair {
+      top: 8px; left: 50%; transform: translateX(-50%);
+      width: 54px; height: 28px;
+      background: #f472b6;
+      border-radius: 40% 40% 0 0;
+    }
+    .portrait-sukuna .eyes { top: 36px; left: 50%; transform: translateX(-50%); }
+    .portrait-sukuna .eye { background: var(--red); }
+    .portrait-sukuna .extra-eyes {
+      position: absolute;
+      top: 44px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 12px;
+    }
+    .portrait-sukuna .extra-eye {
+      width: 4px; height: 4px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+    .portrait-sukuna .tattoo {
+      position: absolute;
+      top: 30px; left: 50%; transform: translateX(-50%);
+      width: 36px; height: 20px;
+    }
+    .portrait-sukuna .tattoo-line {
+      position: absolute;
+      background: #222;
+      height: 2px;
+      width: 12px;
+      border-radius: 1px;
+    }
+    .portrait-sukuna .tattoo-line:nth-child(1) { top: 2px; left: 2px; }
+    .portrait-sukuna .tattoo-line:nth-child(2) { top: 2px; right: 2px; }
+    .portrait-sukuna .tattoo-line:nth-child(3) { top: 14px; left: 6px; width: 8px; }
+    .portrait-sukuna .tattoo-line:nth-child(4) { top: 14px; right: 6px; width: 8px; }
+    .portrait-sukuna .body-shape {
+      width: 62px; height: 52px;
+      background: linear-gradient(180deg, #2a1520, #1a0a10);
+      border-radius: 12px 12px 0 0;
+    }
+    .portrait-sukuna .detail {
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 14px solid var(--red);
+      filter: drop-shadow(0 0 8px rgba(239,68,68,0.6));
+    }
+
+    /* Cursed spirit portraits */
+    .portrait-curse .bg { background: linear-gradient(180deg, rgba(255,0,0,0.08), rgba(100,0,100,0.05)); }
+    .portrait-curse .body-shape {
+      width: 70px; height: 60px;
+      background: #2a1530;
+      border-radius: 30% 30% 10% 10%;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+    }
+    .portrait-curse .head {
+      width: 40px; height: 40px; top: 20px;
+      background: #3a1540;
+      left: 50%; transform: translateX(-50%);
+    }
+
+    .damage-float {
+      position: absolute;
+      font-family: 'Bangers', cursive;
+      font-size: 28px;
+      color: var(--red);
+      text-shadow: 0 0 10px rgba(248,113,113,0.6);
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      z-index: 50;
+    }
+    .damage-float.heal { color: var(--green); text-shadow: 0 0 10px rgba(52,211,153,0.6); }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-40px) scale(0.7); }
+    }
+
+    /* Sukuna rage mode */
+    .arena-section.rage-mode {
+      border-color: rgba(248,113,113,0.4);
+      box-shadow: 0 0 40px rgba(248,113,113,0.15);
+      animation: ragePulse 2s ease infinite;
+    }
+    @keyframes ragePulse {
+      0%,100% { box-shadow: 0 0 20px rgba(248,113,113,0.1); }
+      50% { box-shadow: 0 0 50px rgba(248,113,113,0.25); }
+    }
+
+    /* Victory confetti */
+    .confetti-piece {
+      position: fixed;
+      width: 10px; height: 10px;
+      z-index: 400;
+      animation: confettiFall linear forwards;
+    }
+    @keyframes confettiFall {
+      0% { opacity: 1; transform: translateY(-10vh) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
+    }
+
+    /* Mute button */
+    .mute-btn {
+      position: fixed;
+      top: 16px; right: 16px;
+      z-index: 500;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background 0.2s;
+    }
+    .mute-btn:hover { background: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <canvas id="particles-canvas"></canvas>
+  <button class="mute-btn" id="mute-btn" title="Toggle Sound">🔊</button>
+
+  <div class="attack-overlay" id="attack-overlay"></div>
+  <div class="hit-flash" id="hit-flash"></div>
+  <div class="black-flash-overlay" id="black-flash-overlay"></div>
+  <div class="domain-overlay" id="domain-overlay"></div>
+  <div class="boss-intro-overlay" id="boss-intro"></div>
+
+  <div class="modal-overlay" id="tutorial-modal">
+    <div class="modal-card">
+      <h3>Hey Sorcerer!</h3>
+      <p><span class="tip-icon">⚡</span> Answer trivia questions to attack curses!</p>
+      <p><span class="tip-icon">🔥</span> Get 3 right in a row for <strong>Black Flash</strong>!</p>
+      <p><span class="tip-icon">🌀</span> Get 5 in a row to unleash <strong>Domain Expansion</strong>!</p>
+      <p><span class="tip-icon">💜</span> Use Cursed Energy for healing and special techniques!</p>
+      <p><span class="tip-icon">👑</span> Defeat all 5 curses and face the final boss: <strong>Sukuna</strong>!</p>
+      <button class="btn btn-primary" id="close-tutorial">Let's Go!</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- START -->
+    <section id="screen-start" class="screen active">
+      <div class="start-hero">
+        <div class="logo">Sorcerer Trial</div>
+        <div class="edition">Kids Edition</div>
+        <p class="tagline">Choose your favorite sorcerer, answer Jujutsu Kaisen trivia, and battle powerful curses! Can you defeat the King of Curses?</p>
+        <div class="start-characters" id="start-previews"></div>
+        <button class="btn btn-primary" id="btn-begin">Begin Your Trial</button>
+      </div>
+    </section>
+
+    <!-- CHARACTER SELECT -->
+    <section id="screen-select" class="screen">
+      <div style="text-align:center; margin-bottom:8px;">
+        <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:4px; margin-bottom:4px;">Choose Your Path</div>
+        <h2 style="font-family:'Bangers',cursive; font-size:clamp(28px,5vw,42px); letter-spacing:2px;">Select Your Sorcerer</h2>
+        <div style="margin-top:12px;">
+          <span class="token-badge" id="token-display">🪙 0 tokens</span>
+        </div>
+      </div>
+      <div class="select-grid" id="char-grid"></div>
+      <div class="actions-bar">
+        <button class="btn btn-secondary" id="btn-back-home">Back</button>
+        <button class="btn btn-primary" id="btn-start-game" disabled>Start Trial</button>
+        <button class="btn btn-secondary" id="btn-shop">🛒 Shop</button>
+      </div>
+    </section>
+
+    <!-- SHOP -->
+    <section id="screen-shop" class="screen">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:4px; margin-bottom:4px;">Cursed Market</div>
+        <h2 style="font-family:'Bangers',cursive; font-size:36px; letter-spacing:2px;">Unlock Sorcerers</h2>
+        <div style="margin-top:12px;">
+          <span class="token-badge" id="shop-tokens">🪙 0 tokens</span>
+        </div>
+      </div>
+      <div id="shop-list"></div>
+      <div class="actions-bar">
+        <button class="btn btn-secondary" id="btn-back-select">Back</button>
+      </div>
+    </section>
+
+    <!-- BATTLE -->
+    <section id="screen-battle" class="screen">
+      <div class="battle-grid">
+        <div class="status-bar">
+          <div class="stat-box"><div class="label">Stage</div><div class="value" id="s-stage">1/5</div></div>
+          <div class="stat-box"><div class="label">Score</div><div class="value" id="s-score">0</div></div>
+          <div class="stat-box"><div class="label">Combo</div><div class="value" id="s-combo">0</div></div>
+          <div class="stat-box"><div class="label">Correct</div><div class="value" id="s-correct">0</div></div>
+        </div>
+
+        <div class="arena-section" id="arena">
+          <div class="fighters-row">
+            <div class="fighter-card player-side" id="player-card">
+              <div class="fighter-portrait" id="player-portrait"></div>
+              <div class="fighter-name" id="p-name"></div>
+              <div class="fighter-subtitle" id="p-bonus"></div>
+              <div class="hp-bar-wrap"><div class="hp-fill player-hp" id="p-hp" style="width:100%"></div></div>
+              <div class="hp-text" id="p-hp-text">100 / 100</div>
+              <div class="ce-bar-wrap"><div class="ce-fill" id="p-ce" style="width:100%"></div></div>
+              <div class="ce-text" id="p-ce-text">CE: 100</div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="fighter-card enemy-side" id="enemy-card">
+              <div class="fighter-portrait" id="enemy-portrait"></div>
+              <div class="fighter-name" id="e-name"></div>
+              <div class="fighter-subtitle" id="e-desc"></div>
+              <div class="hp-bar-wrap"><div class="hp-fill enemy-hp" id="e-hp" style="width:100%"></div></div>
+              <div class="hp-text" id="e-hp-text">60 / 60</div>
+            </div>
+          </div>
+
+          <div class="ability-bar">
+            <button class="btn btn-ability" id="btn-heal" disabled>💚 Heal (30 CE)</button>
+            <button class="btn btn-ability" id="btn-technique" disabled>✨ Technique</button>
+          </div>
+
+          <div class="question-section">
+            <div class="timer-track"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+            <div class="q-meta">
+              <span id="q-count">Question 1</span>
+              <span id="q-hint">3 combo = Black Flash!</span>
+            </div>
+            <div class="q-text" id="q-text">Loading...</div>
+            <div class="answers-grid" id="answers-grid"></div>
+            <div class="next-btn-wrap">
+              <button class="btn btn-secondary" id="btn-next" disabled>Next →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="battle-log-section">
+          <h3>⚔️ Battle Log</h3>
+          <div class="log-scroll" id="log-scroll"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- END -->
+    <section id="screen-end" class="screen">
+      <div class="end-hero">
+        <div style="font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:4px; margin-bottom:8px;">Trial Complete</div>
+        <div class="end-rank" id="end-rank">Special Grade</div>
+        <div class="end-line" id="end-line">Incredible performance!</div>
+        <div class="result-grid">
+          <div class="stat-box"><div class="label">Score</div><div class="value" id="end-score">0</div></div>
+          <div class="stat-box"><div class="label">Correct</div><div class="value" id="end-correct">0</div></div>
+          <div class="stat-box"><div class="label">Best Combo</div><div class="value" id="end-combo">0</div></div>
+          <div class="stat-box"><div class="label">Stages</div><div class="value" id="end-stages">0/5</div></div>
+          <div class="stat-box"><div class="label">Tokens Earned</div><div class="value" id="end-tokens">0</div></div>
+        </div>
+        <div class="actions-bar">
+          <button class="btn btn-primary" id="btn-replay">Play Again</button>
+          <button class="btn btn-secondary" id="btn-reselect">Choose Sorcerer</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    /* ========================================
+       SOUND ENGINE (Web Audio API)
+    ======================================== */
+    const SFX = {
+      ctx: null,
+      muted: false,
+
+      init() {
+        if (this.ctx) return;
+        try {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {}
+      },
+
+      play(type) {
+        if (this.muted || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        switch(type) {
+          case 'click': this._tone(440, 0.08, 'square', 0.15); break;
+          case 'correct': this._melody([523, 659, 784], 0.12, 'sine', 0.2); break;
+          case 'wrong': this._melody([300, 250], 0.15, 'sawtooth', 0.12); break;
+          case 'hit': this._noise(0.1, 0.25); break;
+          case 'critHit': this._tone(880, 0.05, 'square', 0.3); this._noise(0.12, 0.3); break;
+          case 'blackFlash': this._blackFlashSFX(); break;
+          case 'domain': this._domainSFX(); break;
+          case 'heal': this._melody([440, 554, 659, 880], 0.15, 'sine', 0.15); break;
+          case 'ability': this._tone(660, 0.2, 'triangle', 0.2); this._tone(880, 0.15, 'sine', 0.15); break;
+          case 'enemyDeath': this._melody([600, 500, 400, 300], 0.1, 'sawtooth', 0.15); break;
+          case 'bossIntro': this._bossIntroSFX(); break;
+          case 'victory': this._victorySFX(); break;
+          case 'defeat': this._melody([400, 350, 300, 250], 0.25, 'sine', 0.2); break;
+          case 'dodge': this._tone(1200, 0.06, 'sine', 0.1); this._tone(1600, 0.04, 'sine', 0.08); break;
+          case 'tick': this._tone(1000, 0.02, 'square', 0.05); break;
+          case 'sukunaRage': this._sukunaRageSFX(); break;
+          case 'sukunaDomain': this._sukunaDomainSFX(); break;
+        }
+      },
+
+      _tone(freq, dur, type, vol) {
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = type;
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(); o.stop(this.ctx.currentTime + dur);
+      },
+
+      _melody(freqs, noteDur, type, vol) {
+        freqs.forEach((f, i) => {
+          setTimeout(() => this._tone(f, noteDur, type, vol), i * noteDur * 800);
+        });
+      },
+
+      _noise(dur, vol) {
+        const bufSize = this.ctx.sampleRate * dur;
+        const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * vol;
+        const src = this.ctx.createBufferSource();
+        const g = this.ctx.createGain();
+        src.buffer = buf;
+        g.gain.setValueAtTime(vol, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        src.connect(g); g.connect(this.ctx.destination);
+        src.start();
+      },
+
+      _blackFlashSFX() {
+        this._noise(0.15, 0.4);
+        setTimeout(() => {
+          this._tone(200, 0.3, 'sawtooth', 0.3);
+          this._tone(100, 0.4, 'square', 0.2);
+        }, 50);
+        setTimeout(() => this._tone(800, 0.15, 'sine', 0.25), 150);
+      },
+
+      _domainSFX() {
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(80, t);
+        o.frequency.exponentialRampToValueAtTime(400, t + 1.5);
+        g.gain.setValueAtTime(0.3, t);
+        g.gain.linearRampToValueAtTime(0.4, t + 0.8);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(t); o.stop(t + 2.5);
+        setTimeout(() => this._noise(0.5, 0.2), 1000);
+        setTimeout(() => this._tone(600, 0.3, 'sine', 0.3), 1500);
+      },
+
+      _bossIntroSFX() {
+        this._noise(0.3, 0.15);
+        setTimeout(() => this._tone(100, 0.5, 'sawtooth', 0.25), 200);
+        setTimeout(() => this._tone(80, 0.8, 'square', 0.2), 600);
+        setTimeout(() => {
+          this._tone(150, 0.3, 'sawtooth', 0.3);
+          this._noise(0.2, 0.2);
+        }, 1200);
+      },
+
+      _victorySFX() {
+        this._melody([523, 659, 784, 1047], 0.2, 'sine', 0.25);
+        setTimeout(() => this._melody([784, 1047, 1319], 0.25, 'triangle', 0.2), 800);
+      },
+
+      _sukunaRageSFX() {
+        this._tone(60, 1, 'sawtooth', 0.3);
+        this._noise(0.5, 0.15);
+        setTimeout(() => this._tone(120, 0.5, 'square', 0.2), 300);
+      },
+
+      _sukunaDomainSFX() {
+        const t = this.ctx.currentTime;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(60, t);
+        o.frequency.exponentialRampToValueAtTime(300, t + 2);
+        g.gain.setValueAtTime(0.35, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 3);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(t); o.stop(t + 3);
+        setTimeout(() => this._noise(0.8, 0.25), 800);
+        setTimeout(() => {
+          this._tone(200, 0.4, 'square', 0.3);
+          this._tone(250, 0.3, 'sawtooth', 0.2);
+        }, 1600);
+      }
+    };
+
+    /* ========================================
+       PARTICLES
+    ======================================== */
+    const canvas = document.getElementById('particles-canvas');
+    const pctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speedY: -(Math.random() * 0.3 + 0.1),
+        speedX: (Math.random() - 0.5) * 0.2,
+        opacity: Math.random() * 0.4 + 0.1,
+        hue: Math.random() > 0.5 ? 270 : 190,
+      };
+    }
+    for (let i = 0; i < 40; i++) particles.push(createParticle());
+
+    function animateParticles() {
+      pctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        pctx.fillStyle = `hsla(${p.hue}, 80%, 70%, ${p.opacity})`;
+        pctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    /* ========================================
+       DATA
+    ======================================== */
+    const characters = [
+      { id:'yuji', name:'Yuji Itadori', bonus:'Extra HP. Resilient brawler.', maxHp:150, dmgBonus:5, crit:0.10, dodge:0.05, technique:'Divergent Fist', abCost:20, abEffect:'nextCrit', price:0, color:'#ff6b8a' },
+      { id:'megumi', name:'Megumi Fushiguro', bonus:'Shikigami user. High dodge.', maxHp:120, dmgBonus:0, crit:0.12, dodge:0.25, technique:'Ten Shadows', abCost:25, abEffect:'blockNext', price:0, color:'#4a5eff' },
+      { id:'nobara', name:'Nobara Kugisaki', bonus:'Critical striker. High crit.', maxHp:110, dmgBonus:0, crit:0.30, dodge:0.08, technique:'Straw Doll', abCost:15, abEffect:'bonusDmg', price:0, color:'#f59e0b' },
+      { id:'gojo', name:'Satoru Gojo', bonus:'Infinite power. Dodge & damage.', maxHp:130, dmgBonus:15, crit:0.15, dodge:0.15, technique:'Limitless', abCost:30, abEffect:'autoDodge', price:50, color:'#22d3ee' },
+    ];
+
+    const enemies = [
+      { name:'Fly Head Swarm', hp:55, desc:'Weak but creepy!', damage:7, special:'none', portrait:'curse1' },
+      { name:'Finger Bearer', hp:75, desc:'Unstable cursed energy!', damage:11, special:'powerUp', portrait:'curse2' },
+      { name:'Hanami', hp:95, desc:'Nature-type disaster curse!', damage:14, special:'heal', portrait:'curse3' },
+      { name:'Mahito', hp:115, desc:'Soul-reshaping menace!', damage:17, special:'shapeshift', portrait:'curse4' },
+      { name:'Ryomen Sukuna', hp:180, desc:'King of Curses!', damage:22, special:'sukuna', portrait:'sukuna', isBoss:true },
+    ];
+
+    const questions = [
+      {q:"Who becomes Sukuna's vessel by eating a cursed finger?", a:["Yuji Itadori","Megumi","Toge","Nanami"], c:0},
+      {q:"What is Megumi's inherited technique called?", a:["Blood Manipulation","Ten Shadows","Boogie Woogie","Projection"], c:1},
+      {q:"Who is known as the strongest sorcerer alive?", a:["Yaga","Nanami","Satoru Gojo","Kusakabe"], c:2},
+      {q:"What weapons does Nobara fight with?", a:["Hammer and nails","Katana","Chain sickle","Spear"], c:0},
+      {q:"Which school does Yuji attend?", a:["Kyoto Jujutsu High","Tokyo Jujutsu High","Osaka Academy","Sapporo Institute"], c:1},
+      {q:"What are curses born from?", a:["Magic spells","Ancient rituals","Negative human emotions","Moonlight"], c:2},
+      {q:"What powers a sorcerer's techniques?", a:["Mana","Spirit dust","Cursed energy","Moonlight"], c:2},
+      {q:"Who uses cursed speech and says things like 'Salmon'?", a:["Toge Inumaki","Panda","Todo","Yuta"], c:0},
+      {q:"Which student is literally a panda?", a:["Maki","Panda","Yuta","Mai"], c:1},
+      {q:"What did Yuji eat to become Sukuna's vessel?", a:["A cursed ring","Sukuna's finger","A talisman","A scroll"], c:1},
+      {q:"What is Nanami's personality like?", a:["Chaotic","Lazy","Professional","Wild"], c:2},
+      {q:"Who are Yuji's two first-year classmates?", a:["Maki and Panda","Megumi and Nobara","Todo and Mai","Yuta and Inumaki"], c:1},
+      {q:"What is a Domain Expansion?", a:["A healing spell","A sorcerer's ultimate technique","Weapon forging","An exam"], c:1},
+      {q:"What color is Gojo's blindfold?", a:["Black","Blue","White","Red"], c:0},
+      {q:"Who is obsessed with asking people about their 'type'?", a:["Mechamaru","Aoi Todo","Choso","Geto"], c:1},
+      {q:"What is a Black Flash?", a:["A cursed tool","A critical cursed energy hit","A healing move","A barrier"], c:1},
+      {q:"What is Maki known for?", a:["Cursed speech","Weapon mastery","Ice powers","Reverse technique"], c:1},
+      {q:"Which school is Tokyo's rival in the Goodwill Event?", a:["Nagoya","Kyoto","Hokkaido","Yokohama"], c:1},
+      {q:"What is Sukuna known as?", a:["The Guardian","King of Curses","The Principal","A Shikigami"], c:1},
+      {q:"How would you describe Nobara's personality?", a:["Timid and shy","Sharp and fearless","Cold and quiet","Silent and serious"], c:1},
+      {q:"What is Yuji naturally really good at?", a:["Physical ability","Making barriers","Cursed speech","Forging weapons"], c:0},
+      {q:"What do sorcerers exorcise?", a:["Demons","Cursed spirits","Aliens","Beasts"], c:1},
+      {q:"What does Megumi summon in battle?", a:["Familiars","Shikigami","Hollows","Golems"], c:1},
+      {q:"Who is both comedic AND dangerously powerful?", a:["Junpei","Satoru Gojo","Ijichi","Momo"], c:1},
+      {q:"What is Jujutsu Kaisen mainly about?", a:["Finding treasure","Sorcerers fighting curses","Space travel","Sports"], c:1},
+      {q:"What are Sukuna's fingers?", a:["Snacks","Powerful cursed objects","Gate keys","Summoning tools"], c:1},
+      {q:"Who makes up the main trio?", a:["Yuji, Megumi, Nobara","Gojo, Geto, Nanami","Panda, Todo, Mei","Maki, Mai, Choso"], c:0},
+      {q:"What does reverse cursed technique do?", a:["Heals injuries","Chains souls","Echoes spirits","Folds time"], c:0},
+      {q:"Which mentor acts like a salaryman?", a:["Todo","Kento Nanami","Panda","Mahito"], c:1},
+      {q:"Why is Domain Expansion so powerful?", a:["Changes the weather","Guarantees your technique hits","Removes energy","Makes you invisible"], c:1},
+      {q:"What is Gojo's most powerful technique?", a:["Red","Blue","Purple","Hollow Purple"], c:3},
+      {q:"What is Maki's signature cursed tool?", a:["Playful Cloud","Split Soul","Dragon-Bone","Chain Sickle"], c:0},
+      {q:"Who is Yuta's special grade cursed companion?", a:["Rika","Toji","Geto","Kenjaku"], c:0},
+      {q:"What does Kenjaku want to do?", a:["Become strongest","Merge with humanity","Destroy all curses","Revive Sukuna"], c:1},
+      {q:"Who uses the Boogie Woogie technique?", a:["Yuji","Aoi Todo","Panda","Kokusen"], c:1},
+      {q:"How many fingers does Sukuna have total?", a:["10","15","20","25"], c:2},
+      {q:"What is the name of Gojo's Domain Expansion?", a:["Infinite Void","Chimera Shadow Garden","Malevolent Shrine","Self-Embodiment"], c:0},
+      {q:"Who is Choso?", a:["A teacher","A cursed womb death painting","A shikigami","A principal"], c:1},
+      {q:"What grade is a very powerful sorcerer?", a:["Grade 4","Grade 2","Grade 1","Special Grade"], c:3},
+      {q:"What animal does Megumi's Divine Dog look like?", a:["A cat","A wolf/dog","A dragon","A hawk"], c:1},
+    ];
+
+    /* ========================================
+       STATE
+    ======================================== */
+    let state = {
+      tokens: parseInt(localStorage.getItem('sorcererKidsTokens') || '0'),
+      unlocked: JSON.parse(localStorage.getItem('sorcererKidsUnlocked') || '["yuji","megumi","nobara"]'),
+      selected: null,
+      score: 0, correct: 0, combo: 0, bestCombo: 0,
+      stageIdx: 0, qIdx: 0, usedQs: [],
+      locked: false,
+      stagesCleared: 0,
+      enemy: null,
+      player: null,
+      nextCrit: false, blockNext: false, autoDodge: false,
+      timer: null, timeLeft: 12,
+      currentQ: null, shuffledAs: null,
+      tokensEarned: 0,
+      sukunaDomainUsed: false,
+      sukunaRaged: false,
+    };
+
+    function saveProgress() {
+      localStorage.setItem('sorcererKidsTokens', state.tokens);
+      localStorage.setItem('sorcererKidsUnlocked', JSON.stringify(state.unlocked));
+    }
+
+    /* ========================================
+       HELPERS
+    ======================================== */
+    const $ = id => document.getElementById(id);
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      $(id).classList.add('active');
+    }
+    function shuffle(arr) {
+      const c = [...arr];
+      for (let i = c.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [c[i], c[j]] = [c[j], c[i]];
+      }
+      return c;
+    }
+
+    /* ========================================
+       PORTRAIT RENDERER
+    ======================================== */
+    function renderPortrait(containerId, charId, size) {
+      const el = $(containerId);
+      if (!el) return;
+      const w = size || 80;
+      const h = Math.round(w * 1.15);
+      el.style.width = w + 'px';
+      el.style.height = h + 'px';
+
+      switch(charId) {
+        case 'yuji':
+          el.innerHTML = `<div class="portrait portrait-yuji">
+            <div class="bg"></div>
+            <div class="hair"></div>
+            <div class="head"></div>
+            <div class="eyes" style="top:${h*0.28}px"><div class="eye"></div><div class="eye"></div></div>
+            <div class="body-shape"></div>
+            <div class="detail"></div>
+          </div>`; break;
+        case 'megumi':
+          el.innerHTML = `<div class="portrait portrait-megumi">
+            <div class="bg"></div>
+            <div class="hair"></div>
+            <div class="head"></div>
+            <div class="eyes" style="top:${h*0.28}px"><div class="eye"></div><div class="eye"></div></div>
+            <div class="body-shape"></div>
+            <div class="detail"></div>
+          </div>`; break;
+        case 'nobara':
+          el.innerHTML = `<div class="portrait portrait-nobara">
+            <div class="bg"></div>
+            <div class="hair"></div>
+            <div class="head"></div>
+            <div class="eyes" style="top:${h*0.28}px"><div class="eye"></div><div class="eye"></div></div>
+            <div class="body-shape"></div>
+            <div class="detail"></div>
+          </div>`; break;
+        case 'gojo':
+          el.innerHTML = `<div class="portrait portrait-gojo">
+            <div class="bg"></div>
+            <div class="hair"></div>
+            <div class="head"></div>
+            <div class="blindfold"></div>
+            <div class="body-shape"></div>
+            <div class="detail"></div>
+          </div>`; break;
+        case 'sukuna':
+          el.innerHTML = `<div class="portrait portrait-sukuna">
+            <div class="bg"></div>
+            <div class="hair"></div>
+            <div class="head"></div>
+            <div class="tattoo">
+              <div class="tattoo-line"></div><div class="tattoo-line"></div>
+              <div class="tattoo-line"></div><div class="tattoo-line"></div>
+            </div>
+            <div class="eyes" style="top:${h*0.27}px"><div class="eye"></div><div class="eye"></div></div>
+            <div class="extra-eyes"><div class="extra-eye"></div><div class="extra-eye"></div></div>
+            <div class="body-shape"></div>
+            <div class="detail"></div>
+          </div>`; break;
+        default:
+          const hue = charId === 'curse1' ? 300 : charId === 'curse2' ? 0 : charId === 'curse3' ? 120 : 280;
+          const shapes = charId === 'curse1' ? '🦟' : charId === 'curse2' ? '👹' : charId === 'curse3' ? '🌿' : '👻';
+          el.innerHTML = `<div class="portrait portrait-curse">
+            <div class="bg" style="background:linear-gradient(180deg, hsla(${hue},60%,30%,0.2), hsla(${hue},60%,20%,0.05))"></div>
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:${w*0.5}px">${shapes}</div>
+          </div>`;
+      }
+    }
+
+    /* ========================================
+       START SCREEN PREVIEWS
+    ======================================== */
+    function renderStartPreviews() {
+      const root = $('start-previews');
+      root.innerHTML = '';
+      characters.forEach(ch => {
+        const d = document.createElement('div');
+        d.className = 'start-char-preview';
+        d.id = 'start-preview-' + ch.id;
+        d.style.background = ch.color + '22';
+        root.appendChild(d);
+        renderPortrait('start-preview-' + ch.id, ch.id, 76);
+      });
+    }
+    renderStartPreviews();
+
+    /* ========================================
+       CHARACTER SELECT
+    ======================================== */
+    function renderCharSelect() {
+      const root = $('char-grid');
+      root.innerHTML = '';
+      characters.forEach(ch => {
+        const unlocked = state.unlocked.includes(ch.id);
+        const selected = state.selected?.id === ch.id;
+        const d = document.createElement('div');
+        d.className = 'char-card' + (selected ? ' selected' : '') + (unlocked ? '' : ' locked');
+        d.innerHTML = `
+          <div class="char-portrait" id="select-portrait-${ch.id}"></div>
+          <div class="char-name" style="color:${ch.color}">${ch.name}</div>
+          <div class="char-desc">${ch.bonus}</div>
+          <div class="char-stats">
+            <span class="stat-pill">HP ${ch.maxHp}</span>
+            <span class="stat-pill">Crit ${(ch.crit*100).toFixed(0)}%</span>
+            <span class="stat-pill">${ch.technique}</span>
+          </div>
+          ${!unlocked ? '<div style="margin-top:8px"><span class="stat-pill" style="background:rgba(255,255,255,0.1);color:var(--gold)">🔒 ${ch.price} tokens</span></div>' : ''}
+        `;
+        if (unlocked) {
+          d.onclick = () => {
+            SFX.init(); SFX.play('click');
+            state.selected = ch;
+            renderCharSelect();
+            $('btn-start-game').disabled = false;
+          };
+        }
+        root.appendChild(d);
+        renderPortrait('select-portrait-' + ch.id, ch.id, 100);
+      });
+      $('token-display').textContent = '🪙 ' + state.tokens + ' tokens';
+    }
+
+    /* ========================================
+       SHOP
+    ======================================== */
+    function renderShop() {
+      const root = $('shop-list');
+      root.innerHTML = '';
+      const locked = characters.filter(ch => !state.unlocked.includes(ch.id));
+      if (locked.length === 0) {
+        root.innerHTML = '<p style="text-align:center;color:var(--muted)">All sorcerers unlocked! 🎉</p>';
+      }
+      locked.forEach(ch => {
+        const d = document.createElement('div');
+        d.className = 'shop-item';
+        d.innerHTML = `
+          <span style="font-weight:700">${ch.name} <span style="color:var(--gold)">(${ch.price} tokens)</span></span>
+          <button class="btn btn-ability" ${state.tokens < ch.price ? 'disabled' : ''} data-cid="${ch.id}">Unlock</button>
+        `;
+        root.appendChild(d);
+      });
+      $('shop-tokens').textContent = '🪙 ' + state.tokens + ' tokens';
+    }
+
+    $('shop-list').addEventListener('click', e => {
+      if (e.target.dataset.cid) {
+        const ch = characters.find(c => c.id === e.target.dataset.cid);
+        if (ch && state.tokens >= ch.price) {
+          SFX.init(); SFX.play('ability');
+          state.tokens -= ch.price;
+          state.unlocked.push(ch.id);
+          saveProgress();
+          renderShop();
+        }
+      }
+    });
+
+    /* ========================================
+       ATTACK ANIMATIONS
+    ======================================== */
+    function showAttackText(text, color) {
+      const overlay = $('attack-overlay');
+      overlay.innerHTML = '';
+      overlay.classList.add('active');
+      const t = document.createElement('div');
+      t.className = 'attack-text';
+      t.textContent = text;
+      t.style.color = color || 'white';
+      t.style.textShadow = `0 0 20px ${color || 'var(--accent)'}, 0 0 40px ${color || 'var(--accent)'}`;
+      overlay.appendChild(t);
+      setTimeout(() => overlay.classList.remove('active'), 1000);
+    }
+
+    function showImpact(targetId) {
+      const target = $(targetId);
+      const rect = target.getBoundingClientRect();
+      const flash = $('hit-flash');
+      const ring = document.createElement('div');
+      ring.className = 'impact-ring';
+      ring.style.left = (rect.left + rect.width / 2) + 'px';
+      ring.style.top = (rect.top + rect.height / 2) + 'px';
+      flash.appendChild(ring);
+      setTimeout(() => ring.remove(), 500);
+    }
+
+    function showSlash(targetId) {
+      const target = $(targetId);
+      const rect = target.getBoundingClientRect();
+      const flash = $('hit-flash');
+      for (let i = 0; i < 3; i++) {
+        const sl = document.createElement('div');
+        sl.className = 'slash-effect';
+        sl.style.left = (rect.left + Math.random() * rect.width * 0.6) + 'px';
+        sl.style.top = (rect.top + Math.random() * rect.height * 0.6 + 20) + 'px';
+        sl.style.animationDelay = (i * 0.08) + 's';
+        flash.appendChild(sl);
+        setTimeout(() => sl.remove(), 400);
+      }
+    }
+
+    function showBlackFlash() {
+      const overlay = $('black-flash-overlay');
+      overlay.classList.add('active');
+      SFX.play('blackFlash');
+      setTimeout(() => overlay.classList.remove('active'), 500);
+    }
+
+    function showDamageFloat(targetId, dmg, isHeal) {
+      const target = $(targetId);
+      const rect = target.getBoundingClientRect();
+      const f = document.createElement('div');
+      f.className = 'damage-float' + (isHeal ? ' heal' : '');
+      f.textContent = (isHeal ? '+' : '-') + dmg;
+      f.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+      f.style.top = (rect.top + 10) + 'px';
+      document.body.appendChild(f);
+      setTimeout(() => f.remove(), 1000);
+    }
+
+    /* ========================================
+       DOMAIN EXPANSION EFFECT
+    ======================================== */
+    function showDomainExpansion(charName, domainName, damage, isSukuna) {
+      return new Promise(resolve => {
+        const overlay = $('domain-overlay');
+        overlay.className = 'domain-overlay active' + (isSukuna ? ' sukuna' : '');
+
+        const color = isSukuna ? 'var(--red)' : 'var(--accent)';
+        const circleColor = isSukuna ? '#ef4444' : '#a855f7';
+
+        let circlesHTML = '';
+        for (let i = 0; i < 6; i++) {
+          const size = 60 + i * 80;
+          const delay = 0.3 + i * 0.15;
+          circlesHTML += `<div class="domain-circle" style="
+            width:${size}px; height:${size}px;
+            border-color: ${circleColor}${Math.round((0.5 - i*0.06) * 255).toString(16).padStart(2,'0')};
+            animation: domainCircleExpand 2s ${delay}s ease-out forwards;
+          "></div>`;
+        }
+
+        overlay.innerHTML = `
+          <div class="domain-bg"></div>
+          <div class="domain-pattern">${circlesHTML}</div>
+          <div class="domain-text-container">
+            <div class="domain-announce">Domain Expansion</div>
+            <div class="domain-name" style="text-shadow: 0 0 40px ${color}, 0 0 80px ${color};">${domainName}</div>
+            <div class="domain-damage">${damage} DAMAGE!</div>
+          </div>
+        `;
+
+        if (isSukuna) {
+          SFX.play('sukunaDomain');
+        } else {
+          SFX.play('domain');
+        }
+
+        const styleEl = document.createElement('style');
+        styleEl.textContent = `
+          @keyframes domainCircleExpand {
+            0% { transform: translate(-50%,-50%) scale(0); opacity: 0; }
+            30% { opacity: 1; }
+            100% { transform: translate(-50%,-50%) scale(4); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(styleEl);
+
+        setTimeout(() => {
+          overlay.className = 'domain-overlay';
+          overlay.innerHTML = '';
+          styleEl.remove();
+          resolve();
+        }, 4000);
+      });
+    }
+
+    /* ========================================
+       BOSS INTRO
+    ======================================== */
+    function showBossIntro() {
+      return new Promise(resolve => {
+        const overlay = $('boss-intro');
+        overlay.innerHTML = `
+          <div class="boss-warning">⚠ WARNING ⚠</div>
+          <div class="boss-name-reveal">RYOMEN SUKUNA</div>
+          <div class="boss-subtitle">King of Curses</div>
+        `;
+        overlay.classList.add('active');
+        SFX.play('bossIntro');
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          resolve();
+        }, 3500);
+      });
+    }
+
+    /* ========================================
+       CONFETTI
+    ======================================== */
+    function spawnConfetti() {
+      const colors = ['#a855f7','#22d3ee','#f59e0b','#34d399','#f87171','#60a5fa','#f472b6'];
+      for (let i = 0; i < 50; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        p.style.width = (6 + Math.random() * 8) + 'px';
+        p.style.height = (6 + Math.random() * 8) + 'px';
+        p.style.animationDuration = (2 + Math.random() * 3) + 's';
+        p.style.animationDelay = (Math.random() * 1.5) + 's';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 5000);
+      }
+    }
+
+    /* ========================================
+       GAME LOGIC
+    ======================================== */
+    function initGame() {
+      SFX.init();
+      const ch = state.selected;
+      Object.assign(state, {
+        score: 0, correct: 0, combo: 0, bestCombo: 0,
+        stageIdx: 0, qIdx: 0, usedQs: [],
+        locked: false, stagesCleared: 0,
+        enemy: null,
+        player: { ...ch, hp: ch.maxHp, ce: 100 },
+        nextCrit: false, blockNext: false, autoDodge: false,
+        tokensEarned: 0,
+        sukunaDomainUsed: false, sukunaRaged: false,
+      });
+      $('log-scroll').innerHTML = '';
+      $('arena').classList.remove('rage-mode');
+      show('screen-battle');
+      startStage(0);
+      addLog(`${ch.name} enters the arena. The trial begins!`, 'special');
+    }
+
+    function startStage(idx) {
+      const ed = enemies[idx];
+      state.enemy = { ...ed, maxHp: ed.hp, hp: ed.hp, turns: 0, enraged: false };
+      state.stageIdx = idx;
+      document.body.style.background = [
+        'radial-gradient(ellipse at top, #2a1040, #0f0a2e)',
+        'radial-gradient(ellipse at right, #3a1818, #0f0a2e)',
+        'radial-gradient(ellipse at left, #0f2a3a, #0f0a2e)',
+        'radial-gradient(ellipse at bottom, #3a2040, #0f0a2e)',
+        'radial-gradient(ellipse at center, #4a0a0a, #0f0a2e)',
+      ][idx] || 'var(--bg)';
+
+      if (ed.isBoss) {
+        showBossIntro().then(() => {
+          updateBattleUI();
+          nextQuestion();
+        });
+      } else {
+        updateBattleUI();
+        nextQuestion();
+      }
+    }
+
+    function getUnusedQ() {
+      const remain = questions.filter((_, i) => !state.usedQs.includes(i));
+      if (remain.length === 0) { state.usedQs = []; return getUnusedQ(); }
+      const pick = remain[Math.floor(Math.random() * remain.length)];
+      state.usedQs.push(questions.indexOf(pick));
+      return pick;
+    }
+
+    // Timer
+    function startTimer() {
+      stopTimer();
+      state.timeLeft = state.enemy?.isBoss ? 10 : 12;
+      $('timer-fill').style.width = '100%';
+      state.timer = setInterval(() => {
+        state.timeLeft -= 0.1;
+        $('timer-fill').style.width = Math.max(0, (state.timeLeft / (state.enemy?.isBoss ? 10 : 12)) * 100) + '%';
+        if (state.timeLeft <= 3 && state.timeLeft > 2.9) SFX.play('tick');
+        if (state.timeLeft <= 2 && state.timeLeft > 1.9) SFX.play('tick');
+        if (state.timeLeft <= 1 && state.timeLeft > 0.9) SFX.play('tick');
+        if (state.timeLeft <= 0) {
+          stopTimer();
+          if (!state.locked) handleWrong();
+        }
+      }, 100);
+    }
+    function stopTimer() { if (state.timer) clearInterval(state.timer); state.timer = null; }
+
+    function nextQuestion() {
+      stopTimer();
+      if (state.player.hp <= 0) return;
+      state.locked = false;
+      const q = getUnusedQ();
+      state.currentQ = q;
+      state.shuffledAs = shuffle(q.a.map((text, idx) => ({ text, idx })));
+      renderQuestion();
+      $('btn-next').disabled = true;
+      startTimer();
+    }
+
+    function renderQuestion() {
+      $('q-count').textContent = `Question ${state.qIdx + 1}`;
+      $('q-text').textContent = state.currentQ.q;
+      const grid = $('answers-grid');
+      grid.innerHTML = '';
+      state.shuffledAs.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-answer';
+        btn.textContent = item.text;
+        btn.onclick = () => chooseAnswer(item.idx, btn);
+        grid.appendChild(btn);
+      });
+
+      $('q-hint').textContent =
+        state.combo >= 4 ? '🌀 Next = DOMAIN EXPANSION!' :
+        state.combo >= 2 ? '⚡ Next = BLACK FLASH!' :
+        state.enemy?.isBoss ? '👑 Boss Battle!' : '3 combo = Black Flash!';
+    }
+
+    function chooseAnswer(origIdx, btn) {
+      if (state.locked) return;
+      stopTimer();
+      state.locked = true;
+
+      const buttons = [...document.querySelectorAll('.btn-answer')];
+      const correctIdx = state.currentQ.c;
+      buttons.forEach(b => {
+        b.disabled = true;
+        const matchItem = state.shuffledAs.find(x => x.text === b.textContent);
+        if (matchItem && matchItem.idx === correctIdx) b.classList.add('correct');
+      });
+
+      if (origIdx === correctIdx) {
+        SFX.play('correct');
+        handleCorrect();
+      } else {
+        btn.classList.add('wrong');
+        SFX.play('wrong');
+        handleWrong();
+      }
+
+      state.qIdx++;
+      $('btn-next').disabled = false;
+    }
+
+    function calcPlayerDmg() {
+      let dmg = 12 + Math.floor(Math.random() * 7) + (state.selected.dmgBonus || 0);
+      let label = 'Attack';
+      let attackColor = 'white';
+      let isCrit = false;
+
+      if (state.nextCrit) {
+        dmg = Math.floor(dmg * 1.5);
+        label = 'Crit Strike!';
+        isCrit = true;
+        state.nextCrit = false;
+      } else if (Math.random() < state.selected.crit) {
+        dmg = Math.floor(dmg * 1.5);
+        label = 'Critical!';
+        isCrit = true;
+      }
+
+      if (state.combo >= 2) {
+        dmg += 15;
+        label = 'BLACK FLASH!';
+        attackColor = '#fbbf24';
+      }
+      if (state.combo >= 4) {
+        dmg += 25;
+        label = 'DOMAIN EXPANSION!';
+        attackColor = '#a855f7';
+      }
+
+      return { dmg: Math.floor(dmg), label, attackColor, isCrit };
+    }
+
+    function enemyAttack() {
+      let dmg = state.enemy.damage + Math.floor(Math.random() * 5);
+      let note = '';
+
+      if (state.enemy.special === 'powerUp' && state.enemy.turns % 3 === 2) {
+        dmg = Math.floor(dmg * 1.4);
+        note = ' (Power Up!)';
+      }
+      if (state.enemy.special === 'shapeshift' && Math.random() < 0.25) {
+        dmg = Math.floor(dmg * 1.3);
+        note = ' (Shape Shift!)';
+      }
+      if (state.enemy.special === 'sukuna' && state.enemy.hp < state.enemy.maxHp * 0.5 && !state.sukunaRaged) {
+        state.sukunaRaged = true;
+        dmg = Math.floor(dmg * 1.5);
+        note = ' (ENRAGED!)';
+        $('arena').classList.add('rage-mode');
+        SFX.play('sukunaRage');
+        addLog('Sukuna is ENRAGED! His attacks grow stronger!', 'boss');
+      }
+
+      if (state.autoDodge) {
+        state.autoDodge = false;
+        SFX.play('dodge');
+        addLog(`${state.selected.name} auto-dodges with Infinity!`, 'special');
+        return { dmg: 0, dodged: true };
+      }
+      if (state.blockNext) {
+        state.blockNext = false;
+        SFX.play('dodge');
+        addLog(`Shikigami blocks the attack!`, 'special');
+        return { dmg: 0, dodged: true };
+      }
+      if (Math.random() < (state.selected.dodge || 0)) {
+        SFX.play('dodge');
+        return { dmg: 0, dodged: true, note: ' (dodged!)' };
+      }
+
+      return { dmg, dodged: false, note };
+    }
+
+    async function handleCorrect() {
+      state.correct++;
+      state.combo++;
+      state.bestCombo = Math.max(state.bestCombo, state.combo);
+      state.player.ce = Math.min(100, state.player.ce + 10);
+
+      if (state.combo >= 3) $('s-combo').classList.add('combo-glow');
+      else $('s-combo').classList.remove('combo-glow');
+
+      const attack = calcPlayerDmg();
+
+      if (state.combo >= 5) {
+        const domainNames = { yuji: 'Malevolent Shrine', megumi: 'Chimera Shadow Garden', nobara: 'Resonance Field', gojo: 'Unlimited Void' };
+        const dName = domainNames[state.selected.id] || 'Domain Expansion';
+        state.enemy.hp = Math.max(0, state.enemy.hp - attack.dmg);
+        updateBattleUI();
+        await showDomainExpansion(state.selected.name, dName, attack.dmg, false);
+        addLog(`DOMAIN EXPANSION: ${dName}! ${attack.dmg} massive damage!`, 'special');
+      } else if (state.combo >= 3) {
+        showBlackFlash();
+        state.enemy.hp = Math.max(0, state.enemy.hp - attack.dmg);
+        showAttackText('BLACK FLASH!', '#fbbf24');
+        showSlash('enemy-card');
+        showImpact('enemy-card');
+        showDamageFloat('enemy-card', attack.dmg, false);
+        addLog(`BLACK FLASH! ${attack.dmg} critical damage!`, 'special');
+      } else {
+        state.enemy.hp = Math.max(0, state.enemy.hp - attack.dmg);
+        showAttackText(attack.label, attack.attackColor);
+        if (attack.isCrit) { SFX.play('critHit'); showSlash('enemy-card'); }
+        else { SFX.play('hit'); }
+        showImpact('enemy-card');
+        showDamageFloat('enemy-card', attack.dmg, false);
+        addLog(`Correct! ${attack.label} deals ${attack.dmg} damage!`, 'good');
+      }
+
+      $('player-card').classList.add('attack-anim');
+      $('enemy-card').classList.add('hit-anim');
+      setTimeout(() => {
+        $('player-card').classList.remove('attack-anim');
+        $('enemy-card').classList.remove('hit-anim');
+      }, 400);
+
+      state.enemy.turns++;
+      state.score += 100 + (state.combo * 25) + attack.dmg;
+
+      if (state.enemy.hp <= 0) {
+        state.stagesCleared++;
+        state.score += 300;
+        const earned = state.enemy.isBoss ? 30 : 10;
+        state.tokens += earned;
+        state.tokensEarned += earned;
+        saveProgress();
+        SFX.play('enemyDeath');
+        addLog(`${state.enemy.name} is defeated! +${earned} tokens!`, 'special');
+        updateBattleUI();
+        setTimeout(() => advanceOrEnd(), 1200);
+        return;
+      }
+
+      // Sukuna domain expansion at 40% HP
+      if (state.enemy.isBoss && state.enemy.hp < state.enemy.maxHp * 0.4 && !state.sukunaDomainUsed) {
+        state.sukunaDomainUsed = true;
+        const sukunaDmg = 20 + Math.floor(Math.random() * 10);
+        updateBattleUI();
+        await showDomainExpansion('Sukuna', 'Malevolent Shrine', sukunaDmg, true);
+        state.player.hp = Math.max(0, state.player.hp - sukunaDmg);
+        addLog(`Sukuna uses DOMAIN EXPANSION: Malevolent Shrine! ${sukunaDmg} damage!`, 'boss');
+        showDamageFloat('player-card', sukunaDmg, false);
+        if (state.player.hp <= 0) {
+          addLog(`${state.selected.name} falls to Sukuna's domain...`, 'bad');
+          setTimeout(() => endGame(false), 1000);
+          updateBattleUI();
+          return;
+        }
+      }
+
+      updateBattleUI();
+      updateAbilityBtns();
+    }
+
+    function handleWrong() {
+      state.combo = 0;
+      $('s-combo').classList.remove('combo-glow');
+      state.player.ce = Math.max(0, state.player.ce - 12);
+
+      const attack = enemyAttack();
+
+      if (!attack.dodged) {
+        state.player.hp = Math.max(0, state.player.hp - attack.dmg);
+        SFX.play('hit');
+        addLog(`Wrong! The curse hits for ${attack.dmg} damage${attack.note || ''}!`, 'bad');
+        showDamageFloat('player-card', attack.dmg, false);
+        showImpact('player-card');
+
+        $('enemy-card').classList.add('attack-anim');
+        $('player-card').classList.add('hit-anim');
+        setTimeout(() => {
+          $('enemy-card').classList.remove('attack-anim');
+          $('player-card').classList.remove('hit-anim');
+        }, 400);
+      } else {
+        addLog(`${state.selected.name} dodges the attack!`, 'special');
+      }
+
+      state.enemy.turns++;
+      updateBattleUI();
+      updateAbilityBtns();
+
+      if (state.player.hp <= 0) {
+        addLog(`${state.selected.name} is knocked out!`, 'bad');
+        setTimeout(() => endGame(false), 1000);
+      }
+    }
+
+    function advanceOrEnd() {
+      if (state.stageIdx >= enemies.length - 1) {
+        endGame(true);
+        return;
+      }
+      state.stageIdx++;
+      addLog(`--- Stage ${state.stageIdx + 1} ---`, 'special');
+      startStage(state.stageIdx);
+    }
+
+    function useHeal() {
+      if (state.player.ce < 30) return;
+      SFX.play('heal');
+      state.player.ce -= 30;
+      const heal = 25;
+      state.player.hp = Math.min(state.selected.maxHp, state.player.hp + heal);
+      showDamageFloat('player-card', heal, true);
+      addLog(`Healed for ${heal} HP!`, 'good');
+      updateBattleUI();
+      updateAbilityBtns();
+    }
+
+    function useTechnique() {
+      const ch = state.selected;
+      if (state.player.ce < ch.abCost) return;
+      SFX.play('ability');
+      state.player.ce -= ch.abCost;
+
+      switch(ch.abEffect) {
+        case 'nextCrit':
+          state.nextCrit = true;
+          addLog(`${ch.name} charges Divergent Fist! Next hit = guaranteed crit!`, 'special');
+          break;
+        case 'blockNext':
+          state.blockNext = true;
+          addLog(`Megumi summons a Shikigami shield!`, 'special');
+          break;
+        case 'bonusDmg':
+          state.nextCrit = true;
+          addLog(`Nobara's Resonance! Next hit deals bonus damage!`, 'special');
+          break;
+        case 'autoDodge':
+          state.autoDodge = true;
+          addLog(`Gojo activates Infinity! Next attack auto-dodged!`, 'special');
+          break;
+      }
+      showAttackText(ch.technique + '!', ch.color);
+      updateBattleUI();
+      updateAbilityBtns();
+    }
+
+    function updateAbilityBtns() {
+      if (!state.player) return;
+      $('btn-heal').disabled = state.player.ce < 30;
+      $('btn-technique').disabled = state.player.ce < state.selected.abCost;
+      $('btn-technique').textContent = `✨ ${state.selected.technique} (${state.selected.abCost} CE)`;
+    }
+
+    function updateBattleUI() {
+      $('s-stage').textContent = `${state.stageIdx + 1}/${enemies.length}`;
+      $('s-score').textContent = state.score;
+      $('s-combo').textContent = state.combo;
+      $('s-correct').textContent = state.correct;
+
+      renderPortrait('player-portrait', state.selected.id, 70);
+      $('p-name').textContent = state.selected.name;
+      $('p-name').style.color = state.selected.color;
+      $('p-bonus').textContent = state.selected.bonus;
+      $('p-hp').style.width = (state.player.hp / state.selected.maxHp * 100) + '%';
+      $('p-hp-text').textContent = `${state.player.hp} / ${state.selected.maxHp}`;
+      $('p-ce').style.width = state.player.ce + '%';
+      $('p-ce-text').textContent = `CE: ${state.player.ce}`;
+
+      if (state.enemy) {
+        renderPortrait('enemy-portrait', state.enemy.portrait, 70);
+        $('e-name').textContent = state.enemy.name;
+        $('e-name').style.color = state.enemy.isBoss ? '#f87171' : '#f472b6';
+        $('e-desc').textContent = state.enemy.desc;
+        $('e-hp').style.width = (state.enemy.hp / state.enemy.maxHp * 100) + '%';
+        $('e-hp-text').textContent = `${state.enemy.hp} / ${state.enemy.maxHp}`;
+      }
+    }
+
+    function addLog(text, type) {
+      const log = $('log-scroll');
+      const d = document.createElement('div');
+      d.className = 'log-entry ' + (type || '');
+      d.textContent = text;
+      log.prepend(d);
+    }
+
+    function getRank(score, cleared) {
+      if (cleared === enemies.length && score >= 3500) return ['Special Grade Sorcerer', 'You defeated the King of Curses! Legendary!'];
+      if (cleared >= enemies.length - 1 && score >= 2500) return ['Grade 1 Sorcerer', 'Incredible power! Almost unstoppable!'];
+      if (cleared >= enemies.length - 2 && score >= 1500) return ['Grade 2 Sorcerer', 'Strong sorcerer! Keep growing!'];
+      if (cleared >= 2 && score >= 800) return ['Grade 3 Sorcerer', 'Nice work! You have real potential!'];
+      return ['Grade 4 Sorcerer', 'Your journey has just begun!'];
+    }
+
+    function endGame(victory) {
+      stopTimer();
+      const [rank, line] = getRank(state.score, state.stagesCleared);
+      $('end-rank').textContent = victory ? rank : 'Trial Failed';
+      $('end-line').textContent = victory ? line : 'The curses were too strong this time. Try again!';
+      $('end-score').textContent = state.score;
+      $('end-correct').textContent = state.correct;
+      $('end-combo').textContent = state.bestCombo;
+      $('end-stages').textContent = `${state.stagesCleared}/${enemies.length}`;
+      $('end-tokens').textContent = state.tokensEarned;
+      show('screen-end');
+
+      if (victory) {
+        SFX.play('victory');
+        spawnConfetti();
+      } else {
+        SFX.play('defeat');
+      }
+    }
+
+    /* ========================================
+       EVENT LISTENERS
+    ======================================== */
+    $('btn-begin').onclick = () => { SFX.init(); SFX.play('click'); renderCharSelect(); show('screen-select'); };
+    $('btn-back-home').onclick = () => { SFX.play('click'); show('screen-start'); };
+    $('btn-start-game').onclick = () => { SFX.play('click'); initGame(); };
+    $('btn-shop').onclick = () => { SFX.play('click'); renderShop(); show('screen-shop'); };
+    $('btn-back-select').onclick = () => { SFX.play('click'); renderCharSelect(); show('screen-select'); };
+    $('btn-next').onclick = () => {
+      if (state.player.hp <= 0 || state.enemy.hp <= 0) return;
+      SFX.play('click');
+      nextQuestion();
+    };
+    $('btn-replay').onclick = () => { SFX.play('click'); initGame(); };
+    $('btn-reselect').onclick = () => { SFX.play('click'); renderCharSelect(); show('screen-select'); };
+    $('btn-heal').onclick = useHeal;
+    $('btn-technique').onclick = useTechnique;
+
+    // Mute toggle
+    $('mute-btn').onclick = () => {
+      SFX.init();
+      SFX.muted = !SFX.muted;
+      $('mute-btn').textContent = SFX.muted ? '🔇' : '🔊';
+    };
+
+    // Tutorial
+    if (!localStorage.getItem('sorcererKidsTutorial')) {
+      $('tutorial-modal').classList.add('active');
+    }
+    $('close-tutorial').onclick = () => {
+      SFX.init(); SFX.play('click');
+      $('tutorial-modal').classList.remove('active');
+      localStorage.setItem('sorcererKidsTutorial', 'true');
+    };
+
+    // Init
+    renderStartPreviews();
+  })();
+  </script>
+</body>
+</html>
